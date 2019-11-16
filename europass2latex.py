@@ -175,6 +175,18 @@ def ConvertPeriodToString(Period):
 
     return WorkPeriod
 
+def ConvertEmployerAddressToString(EmployerNode):
+    EmployerMunicipality = LatexText(GetText(EmployerNode, 'Municipality'))
+    EmployerLabel = LatexText(GetText(EmployerNode, 'Label'))
+    
+    if EmployerMunicipality:
+        EmployerAddr = ", {}, ({})".format(EmployerMunicipality, EmployerLabel)
+    elif EmployerLabel:
+        EmployerAddr = ", ({})".format(EmployerLabel)
+    else:
+        EmployerAddr = ''
+
+    return EmployerAddr
 
 def Visit(D):
     assert type(D) is dict 
@@ -277,7 +289,7 @@ def Visit(D):
 \\renewcommand{{\\headrulewidth}}{{0pt}}
 %\\fancyhf{{}}
 \\rhead{{\\ifthenelse{{\\value{{page}}=1}}{{}}{{{FirstName} {Surname}}}}}
-\\lhead{{}}
+\\lhead{{\\ifthenelse{{\\value{{page}}=1}}{{}}{{Curriculum vitae}}}}
 %\\rfoot{{}}
 
 
@@ -303,6 +315,9 @@ def Visit(D):
 
 \\input{{alejandro_santos_electronics}}
 
+\\setcounter{{tocdepth}}{{1}}
+\\tableofcontents
+
 \\end{{document}}
 
 """.format()
@@ -317,16 +332,7 @@ def Visit(D):
         WorkExp['Activities'] = LatexText(GetText(WorkNode, 'Activities'))
         WorkExp['EmployerName'] = LatexText(GetText(FindKey(WorkNode, 'Employer'), 'Name'))
         WorkExp['WorkPeriod'] = ConvertPeriodToString(FindKey(WorkNode, 'Period'))
-
-        EmployerMunicipality = LatexText(GetText(FindKey(WorkNode, 'Employer'), 'Municipality'))
-        EmployerLabel = LatexText(GetText(FindKey(WorkNode, 'Employer'), 'Label'))
-        
-        if EmployerMunicipality:
-            WorkExp['EmployerAddr'] = ", {}, ({})".format(EmployerMunicipality, EmployerLabel)
-        elif EmployerLabel:
-            WorkExp['EmployerAddr'] = ", ({})".format(EmployerLabel)
-        else:
-            WorkExp['EmployerAddr'] = ''
+        WorkExp['EmployerAddr'] = ConvertEmployerAddressToString(FindKey(WorkNode, 'Employer'))
 
         tex_WorkExperience += """\\subsection{{{WorkPeriod} {Position}}}
 
@@ -346,10 +352,11 @@ def Visit(D):
         EduExp['Activities'] = LatexText(GetText(EduNode, 'Activities'))
         EduExp['OrgName'] = LatexText(GetText(FindKey(EduNode, 'Organisation'), 'Name'))
         EduExp['WorkPeriod'] = ConvertPeriodToString(FindKey(EduNode, 'Period'))
+        EduExp['OrgAddr'] = ConvertEmployerAddressToString(FindKey(EduNode, 'Organisation'))
 
         tex_Education += """\\subsection{{{WorkPeriod} {Title}}}
 
-\\textbf{{{OrgName}}}
+\\textbf{{{OrgName}{OrgAddr}}}
 
 %\\noindent{{}}
 {Activities}
